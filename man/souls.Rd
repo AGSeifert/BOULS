@@ -42,5 +42,5 @@ Matrix showing summed intensities in each segment.
 Segmentation of untargeted LCMS spectra
 }
 \examples{
-seg.result <- SOULS::souls(path_mzMLs = "path/to/folder/mzMLs_Samples", path_Ref = "path/to/folder/mzML_Ref", path_csv = "path/to/folder/phenodata.csv")
+seg.result <- souls(path_mzMLs = "path/to/folder/mzMLs_Samples", path_Ref = "path/to/folder/mzML_Ref", path_csv = "path/to/folder/phenodata.csv")
 }

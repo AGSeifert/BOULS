@@ -2,11 +2,10 @@ Package: SOULS
 Title: Segmentation of untargeted LCMS spectra
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+    person("Jule", "Hansen", , "jule.hansen@uni-hamburg.de", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Description: Processing approach for LCMS data using the sum of intensities of defined segments in the spectra. This approach allows separate processing of the data, which is interesting for the development of large machine learning models over time.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
@@ -17,3 +16,7 @@ Imports:
     SummarizedExperiment,
     utils,
     xcms
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

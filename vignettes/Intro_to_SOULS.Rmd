@@ -1,0 +1,53 @@
+---
+title: "Introduction to SOULS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to SOULS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(SOULS)
+```
+
+This is the introduction to the LCMS data processing approach SOULS (Segmentation of untargeted LCMS spectra). It is based on the xcms package [1-3] and particularly suitable for the development of large machine learning models over time. In contrast to the xcms workflow, it allows separate processing, as a unique peak list independent of the processing batch is achieved by summing up the signal intensities within defined segments in the LCMS spectra. 
+
+The SOULS approach requires high computational power, which is why we recommend using a workstation for real data sets. 
+
+## Data
+To demonstrate the functionality of this approach, the package provides example data in mzML format that can be processed on a normal laptop. Vendor specific files can be converted to mzML format using MSConvert [4]. The SOULS approach was developed for long-term application. To enhance the comparability of the spectra, one sample is defined as reference sample (e.g. the sample with the most peaks) and saved in a separate folder. The samples to be aligned to the reference sample are saved in another folder. Additionally, a csv file is provided with information about the samples (e.g. name, instrument, origin, variety...).
+
+```{r}
+# Load the example data
+path_mzMLs <- system.file('extdata/Samples', package = 'SOULS')
+path_Ref <- system.file('extdata/Reference', package = 'SOULS')
+path_csv <- system.file('extdata/phenodata', package = 'SOULS')
+```
+
+## SOULS approach
+If there are problems with the laptop's computing power, the parameter num_workers can be adjusted to 1 (default value is 2). Furthermore, the range of the spectra in retention time and m/z dimension and the respective size of the segments can be adjusted. For clarity, these parameters are predefined in the function. In this example, the retention time range of minute 5-6 and a mass range of 250-750 Da is processed. 
+
+```{r , warning=FALSE}
+seg.result <- souls(path_mzMLs = path_mzMLs, path_Ref = path_Ref, path_csv = path_csv)
+head(seg.result)
+```
+
+The result of the souls step is a matrix with the sum of intensities for the respective segments. The names of the segments indicate the first value of the range, e.g. the segment 300-310 s and 250-255 Da would have the name "300.250". 
+
+The parameters for peak picking and retention time alignment are predefined. They can be adjusted directly via the xcms workflow. The souls step can be executed after the retention time adjustment.
+
+[1] Smith, C.A., Want, E.J., O'Maille, G., Abagyan,R., Siuzdak, G. (2006). “XCMS: Processing mass spectrometry data for metabolite profiling using nonlinear peak alignment, matching and identification.” Analytical Chemistry, 78, 779–787.
+
+[2] Tautenhahn R, Boettcher C, Neumann S (2008). “Highly sensitive feature detection for high resolution LC/MS.” BMC Bioinformatics, 9, 504.
+
+[3] Benton HP, Want EJ, Ebbels TMD (2010). “Correction of mass calibration gaps in liquid chromatography-mass spectrometry metabolomics data.” BIOINFORMATICS, 26, 2488.
+
+[4] Chambers, M.C.; Maclean, B.; Burke, R.; Amodei, D.; Ruderman, D.L.; Neumann, S.; Gatto, L.; Fischer, B.; Pratt, B.; Egertson, J.; et al. A Cross-Platform Toolkit for Mass Spectrometry and Proteomics. Nat. Biotechnol. 2012, 30, 918–920, doi:10.1038/nbt.2377.

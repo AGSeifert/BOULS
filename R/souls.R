@@ -12,7 +12,9 @@
 #' @return Matrix showing summed intensities in each segment.
 #' @export
 #'
-#' @examples seg.result <- SOULS::souls(path_mzMLs = "path/to/folder/mzMLs_Samples", path_Ref = "path/to/folder/mzML_Ref", path_csv = "path/to/folder/phenodata.csv")
+#' @examples seg.result <- souls(path_mzMLs = "path/to/folder/mzMLs_Samples", path_Ref = "path/to/folder/mzML_Ref", path_csv = "path/to/folder/phenodata.csv")
+
+
 
 souls <- function(path_mzMLs,
                   path_Ref,
@@ -29,13 +31,13 @@ souls <- function(path_mzMLs,
   mzMLs <- list.files(path_mzMLs, full.names = TRUE, recursive = TRUE)
 
   ## load mzML file of reference sample for retention time alignment
-  mzMLs_Ref <- path_Ref
+  mzMLs_Ref <- list.files(path_Ref, full.names = TRUE, recursive = TRUE)
 
   ## assembling of sample and reference mzMLs (last sample)
   mzMLs <- c(mzMLs, mzMLs_Ref[index_ref])
 
   ## read phenodata from csv files
-  pd <- read.csv(path_csv)
+  pd <- read.csv(paste0(path_csv, "/phenodata.csv"))
   ## add reference sample to the pd (last row)
   pd <- rbind(pd, c("Ref.mzML", rep("Ref",times = ncol(pd)-1)))
 
