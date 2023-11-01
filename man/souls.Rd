@@ -2,45 +2,27 @@
 % Please edit documentation in R/souls.R
 \name{souls}
 \alias{souls}
-\title{Segmentation of untargeted LCMS spectra}
+\title{Segmentation of untargeted LCMS data}
 \usage{
-souls(
-  path_mzMLs,
-  path_Ref,
-  index_ref = 1,
-  path_csv,
-  num_workers = 2,
-  RT_range = c(300, 360),
-  size_RT_segs = 10,
-  mz_range = c(250, 750),
-  size_mz_segs = 5
-)
+souls(object, num_workers, RT_range, size_RT_segs, mz_range, size_mz_segs)
 }
 \arguments{
-\item{path_mzMLs}{Path to the folder where the mzML files of the samples are located.}
+\item{object}{XCMSnExp object from xcms workflow (https://bioconductor.org/packages/release/bioc/vignettes/xcms/inst/doc/xcms.html) after retention time alignment (the SOULS step replaces the correspondence step in the xcms workflow).}
 
-\item{path_Ref}{Path to the folder containing the reference sample.}
+\item{RT_range}{Retention time range of the spectra to be processed.}
 
-\item{index_ref}{Index of the reference sample in the folder; Default: 1}
+\item{size_RT_segs}{Size of the segments in retention time dimension (RT_range should be divisible by size_RT_segs).}
 
-\item{path_csv}{Path to the csv file containing the pheno-data such as name, instrument, origin, variety...}
+\item{mz_range}{Mass range of the spectra to be processed.}
 
-\item{num_workers}{Number of cores used for parallel processing. Recommendation: 6/96 or 2/8 Cores; Default: 2}
-
-\item{RT_range}{Retention time range of the LCMS spectra; Default: c(300, 360)}
-
-\item{size_RT_segs}{Size of the segments at retention time level; Default: 10}
-
-\item{mz_range}{m/z range of the LCMS spectra; Default: c(250, 750)}
-
-\item{size_mz_segs}{Size of the segments at m/z level; Default: 5}
+\item{size_mz_segs}{Size of the segments in mass dimension (mz_range should be divisible by size_mz_segs)}
 }
 \value{
 Matrix showing summed intensities in each segment.
 }
 \description{
-Segmentation of untargeted LCMS spectra
+Segmentation of untargeted LCMS data
 }
 \examples{
-seg.result <- souls(path_mzMLs = "path/to/folder/mzMLs_Samples", path_Ref = "path/to/folder/mzML_Ref", path_csv = "path/to/folder/phenodata.csv")
+seg.result <- souls(object = xdata_adj, RT_range = c(300, 360), size_RT_segs = 10, mz_range = mz_range = c(250, 750), size_mz_segs = 5)
 }
