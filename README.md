@@ -1,7 +1,7 @@
 # SOULS
 ## Installation
 ```{r setup}
-devtools::install_github("AGSeifert/RFSurrogates")
+devtools::install_github("AGSeifert/SOULS")
 library(SOULS)
 ```
 
