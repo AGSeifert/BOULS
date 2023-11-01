@@ -1,12 +1,11 @@
 # SOULS
+This is the introduction to the LCMS data processing approach SOULS (Segmentation of untargeted LCMS spectra). It is based on the xcms package [1-3] and particularly suitable for the development of large machine learning models over time. In contrast to the xcms workflow, it allows separate processing, as a unique peak list independent of the processing batch is achieved by summing up the signal intensities within defined segments in the LCMS spectra. The application of the SOULS approach requires an Linux OS.
+
 ## Installation
 ```{r setup}
 devtools::install_github("AGSeifert/SOULS")
 library(SOULS)
 ```
-
-This is the introduction to the LCMS data processing approach SOULS (Segmentation of untargeted LCMS spectra). It is based on the xcms package [1-3] and particularly suitable for the development of large machine learning models over time. In contrast to the xcms workflow, it allows separate processing, as a unique peak list independent of the processing batch is achieved by summing up the signal intensities within defined segments in the LCMS spectra. 
-
 
 ## Data
 To demonstrate the functionality of this approach, [example data is provided here](https://www.fdr.uni-hamburg.de/record/13535).
