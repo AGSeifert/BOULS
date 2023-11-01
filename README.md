@@ -1,13 +1,7 @@
 # SOULS
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-
+## Installation
 ```{r setup}
+devtools::install_github("AGSeifert/RFSurrogates")
 library(SOULS)
 ```
 
