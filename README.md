@@ -1,5 +1,5 @@
 # SOULS
-This is the introduction to the LCMS data processing approach SOULS (Segmentation of untargeted LCMS spectra). It is based on the xcms package [1-3] and particularly suitable for the development of large machine learning models over time. In contrast to the xcms workflow, it allows separate processing, as a unique peak list independent of the processing batch is achieved by summing up the signal intensities within defined segments in the LCMS spectra. The application of the SOULS approach requires an Linux OS.
+SOULS (Segmentation of untargeted LCMS spectra) is a data processing approach based on the xcms package [1-3]. It is particularly suitable for the development of large machine learning models over time since it allows separate processing and joint analysis of untargeted LC‑HRMS data obtained from different devices and at different times by summing up the signal intensities within defined segments. The application of the SOULS approach requires an Linux OS.
 
 ## Installation
 ```{r setup}
@@ -9,7 +9,7 @@ library(SOULS)
 
 ## Data
 To demonstrate the functionality of this approach, [example data is provided here](https://www.fdr.uni-hamburg.de/record/13535).
-Please download the and unzip the file. The phenodata folder contains a csv file with information about the samples, which can be customized individually (e.g. name, variety, geogr. origin, instrument, harvesting year etc). The other folders provide mzML files (we recommend converting the vendor specific files to mzML format with MSConvert [4]). The example files have been shortened to one minute to enable processing on a normal laptop. For real data sets, we recommend using a workstation. The development of large machine learning models over time requires the definition of one sample as a reference sample for the retention time alignment. For example, this could be the sample with the most detected peaks. This reference sample is added to each new data set to be processed, making the retention time alignment independent of the processing batch. The "Samples" folder contains the samples to be processed in the respective batch.
+Please download and unzip the file. The phenodata folder contains a csv file with information about the samples, which can be customized individually (e.g. name, variety, geogr. origin, instrument, harvesting year etc). The other folders provide mzML files (we recommend converting the vendor specific files to mzML format with MSConvert [4]). The example files have been shortened to one minute to enable processing on a normal laptop. For real data sets, we recommend using a workstation. The development of large machine learning models over time requires the definition of one sample as a reference sample for the retention time alignment. For example, this could be the sample with the most detected peaks. This reference sample is added to each new data set to be processed, making the retention time alignment independent of the processing batch. The "Samples" folder contains the samples to be processed in the respective batch.
 
 ```{r}
 # Please insert your paths to the 'Sample', the 'Reference' and the 'phenodata' folders.
@@ -20,10 +20,10 @@ path_csv <- '/home/hansen/example_data/phenodata'
 ```
 
 ## Data processing using SOULS
-This package provides two functions. To facilitate a first try-out, the first function `process_souls()` includes all steps from data import to R to the segmentation of the spectra. In this function, the settings for the xcms functions are predefined. To adjust the xcms settings, the second function `souls()` can be included in the [xcms workflow](https://bioconductor.org/packages/release/bioc/vignettes/xcms/inst/doc/xcms.html), replacing the correspondence step. 
+This package provides two functions. To facilitate the application , the first function `process_souls()` includes all steps from data import to the segmentation of the spectra. In this function, the settings for the xcms functions are predefined. To adjust the xcms settings, the second function `souls()` can be included in the [xcms workflow](https://bioconductor.org/packages/release/bioc/vignettes/xcms/inst/doc/xcms.html), replacing the correspondence step. 
 
 ### General processing using the SOULS approach
-Here, the example data is processed using the predefined xcms settings. Two CPUs are used in parallel (num_workers parameter). In this case, a retention time range of 300 s to 360 s and a mass range of 250 Da to 750 Da is processed. The size of the segments is 10 s in retention time dimension and 5 Da in mass dimension. The result is a matrix with summed intensities for the respective segments. The segments are named (rownames). The first value corresponds to the beginning of the segment in retention time dimension and the second value to the beginning of the segment in mass dimension. For example, the segment 300-310 s and 250-255 Da would have the name "300.250". 
+Here, the example data is processed using the predefined xcms settings. Two CPUs are used in parallel (num_workers parameter). In this case, a retention time range of 300 s to 360 s and a mass range of 250 Da to 750 Da is processed. The size of the segments are 10 s in retention time dimension and 5 Da in mass dimension. The result is a matrix with summed intensities for the respective segments. The segments are named (rownames). The first value corresponds to the beginning of the segment in retention time dimension and the second value to the beginning of the segment in mass dimension. For example, the segment 300-310 s and 250-255 Da would have the name "300.250". 
 
 ```{r , warning=FALSE}
 seg.result <- process_souls(path_mzMLs = path_mzMLs, 
