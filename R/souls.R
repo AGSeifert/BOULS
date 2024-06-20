@@ -1,65 +1,71 @@
 
-#' Segmentation of untargeted LCMS data
+#' Bucketing of untargeted LCMS data
 #'
-#' @param object XCMSnExp object from xcms workflow (https://bioconductor.org/packages/release/bioc/vignettes/xcms/inst/doc/xcms.html) after retention time alignment (the SOULS step replaces the correspondence step in the xcms workflow).
+#' @param object XCMSnExp object from xcms workflow (https://bioconductor.org/packages/release/bioc/vignettes/xcms/inst/doc/xcms.html) after retention time alignment (the BOULS step replaces the correspondence step in the xcms workflow).
 #' @param RT_range Retention time range of the spectra to be processed.
-#' @param size_RT_segs Size of the segments in retention time dimension (RT_range should be divisible by size_RT_segs).
+#' @param size_RT_bins Size of the buckets in retention time dimension (RT_range should be divisible by size_RT_bins).
 #' @param mz_range Mass range of the spectra to be processed.
-#' @param size_mz_segs Size of the segments in mass dimension (mz_range should be divisible by size_mz_segs)
+#' @param size_mz_bins Size of the buckets in mass dimension (mz_range should be divisible by size_mz_bins)
 #'
-#' @return Matrix showing summed intensities in each segment.
+#' @return Matrix showing summed intensities in each bucket.
 #' @export
 #'
-#' @examples seg.result <- souls(object = xdata_adj, RT_range = c(300, 360), size_RT_segs = 10, mz_range = mz_range = c(250, 750), size_mz_segs = 5)
+#' @examples
+#' bin.result <- bouls(object = xdata_adj,
+#' RT_range = c(300, 360),
+#' size_RT_bins = 10,
+#' mz_range = c(250, 750),
+#' size_mz_bins = 5)
 
 
-souls <- function(object,
+
+bouls <- function(object,
                   num_workers,
                   RT_range,
-                  size_RT_segs,
+                  size_RT_bins,
                   mz_range,
-                  size_mz_segs){
+                  size_mz_bins){
 
   options(MulticoreParam = BiocParallel::MulticoreParam(workers = num_workers))
 
-    seg.rt <- diff(RT_range) / size_RT_segs # seg.rt = number of RT segs
-    seg.rt.list <- as.list(seq(from = RT_range[1], to = (RT_range[2] - size_RT_segs), by = size_RT_segs))
-    names(seg.rt.list) <- seq(from = RT_range[1], to = (RT_range[2] - size_RT_segs), by = size_RT_segs)
+    bin.rt <- diff(RT_range) / size_RT_bins # bin.rt = number of RT bins
+    bin.rt.list <- as.list(seq(from = RT_range[1], to = (RT_range[2] - size_RT_bins), by = size_RT_bins))
+    names(bin.rt.list) <- seq(from = RT_range[1], to = (RT_range[2] - size_RT_bins), by = size_RT_bins)
 
-    seg.mz <- diff(mz_range) / size_mz_segs # seg.mz = number of mz segs
-    seg.mz.list <- as.list(seq(from = mz_range[1], to = (mz_range[2] - size_mz_segs), by = size_mz_segs))
-    names(seg.mz.list) <- seq(from = mz_range[1], to = (mz_range[2] - size_mz_segs), by = size_mz_segs)
-    seg.mz.list <- lapply(seg.mz.list, function(mz) {
-      mz <- c(mz, mz + size_mz_segs)
+    bin.mz <- diff(mz_range) / size_mz_bins # bin.mz = number of mz bins
+    bin.mz.list <- as.list(seq(from = mz_range[1], to = (mz_range[2] - size_mz_bins), by = size_mz_bins))
+    names(bin.mz.list) <- seq(from = mz_range[1], to = (mz_range[2] - size_mz_bins), by = size_mz_bins)
+    bin.mz.list <- lapply(bin.mz.list, function(mz) {
+      mz <- c(mz, mz + size_mz_bins)
     })
 
 
-    seg.result <- bplapply(seg.mz.list, function(mz.seg) {
+    bin.result <- bplapply(bin.mz.list, function(mz.bin) {
       TIC <- xcms::chromatogram(object,
-                                mz = as.vector(mz.seg),
+                                mz = as.vector(mz.bin),
                                 aggregationFun = "sum"
       )
 
-      lapply(seg.rt.list, function(rt.seg) {
+      lapply(bin.rt.list, function(rt.bin) {
         apply(TIC, 2, function(TIC_x) {
-          sum(TIC_x[[1]]@intensity[which(dplyr::between(TIC_x[[1]]@rtime, rt.seg, (rt.seg + size_RT_segs)) == TRUE)], na.rm = TRUE)
+          sum(TIC_x[[1]]@intensity[which(dplyr::between(TIC_x[[1]]@rtime, rt.bin, (rt.bin + size_RT_bins)) == TRUE)], na.rm = TRUE)
         })
-      }) # End lapply seg.rt.list
+      }) # End lapply bin.rt.list
     }) # End of bplapply mz
 
 
     # Creating a matrix with the results
-    result.unlist <- unlist(seg.result)
-    number.segs <- (diff(RT_range) / size_RT_segs) * ((mz_range[2] - mz_range[1]) / size_mz_segs)
-    segdata <- matrix(result.unlist, nrow = number.segs, ncol = nrow(object), byrow = TRUE)
-    colnames(segdata) <- basename(fileNames(object))
+    result.unlist <- unlist(bin.result)
+    number.bins <- (diff(RT_range) / size_RT_bins) * ((mz_range[2] - mz_range[1]) / size_mz_bins)
+    bindata <- matrix(result.unlist, nrow = number.bins, ncol = nrow(object), byrow = TRUE)
+    colnames(bindata) <- basename(fileNames(object))
 
     # Rownames
 
-    prefix <- rep(names(seg.rt.list), times = length(seg.mz.list))
-    suffix <- rep(names(seg.mz.list), each = length(seg.rt.list))
+    prefix <- rep(names(bin.rt.list), times = length(bin.mz.list))
+    suffix <- rep(names(bin.mz.list), each = length(bin.rt.list))
 
-    rownames(segdata) <- paste0(prefix, sep = ".", suffix)
+    rownames(bindata) <- paste0(prefix, sep = ".", suffix)
 
-    segdata
+    bindata
   }

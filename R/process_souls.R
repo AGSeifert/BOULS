@@ -1,4 +1,4 @@
-#' Processing of raw LCMS data using SOULS (Segmentation of untargeted LCMS spectra)
+#' Processing of raw LCMS data using BOULS (Bucketing of untargeted LCMS spectra)
 #'
 #' @param path_mzMLs Path to the folder where the mzML files of the samples are located.
 #' @param path_Ref Path to the folder containing the reference sample.
@@ -6,25 +6,28 @@
 #' @param path_csv Path to the csv file containing the pheno-data such as name, instrument, origin, variety...
 #' @param num_workers Number of cores used for parallel processing. Recommendation: 6/96 or 2/8 Cores; Default: 2
 #' @param RT_range Retention time range of the LCMS spectra; Default: c(300, 360)
-#' @param size_RT_segs Size of the segments at retention time level; Default: 10
+#' @param size_RT_bins Size of the buckets at retention time level; Default: 10
 #' @param mz_range m/z range of the LCMS spectra; Default: c(250, 750)
-#' @param size_mz_segs Size of the segments at m/z level; Default: 5
-#' @return Matrix showing summed intensities in each segment.
+#' @param size_mz_bins Size of the buckets at m/z level; Default: 5
+#' @return Matrix showing summed intensities in each bucket.
 #' @export
 #'
-#' @examples seg.result <- process_souls(path_mzMLs = "path/to/folder/Samples", path_Ref = "path/to/folder/Ref", path_csv = "path/to/folder/phenodata")
+#' @examples
+#' bin.result <- process_bouls(path_mzMLs = "path/to/folder/Samples",
+#' path_Ref = "path/to/folder/Ref",
+#' path_csv = "path/to/folder/phenodata")
 
 
 
-process_souls <- function(path_mzMLs,
+process_bouls <- function(path_mzMLs,
                   path_Ref,
                   index_ref = 1,
                   path_csv,
                   num_workers,
                   RT_range,
-                  size_RT_segs,
+                  size_RT_bins,
                   mz_range,
-                  size_mz_segs
+                  size_mz_bins
                   ){
 
   ## load mzMLs
@@ -75,45 +78,45 @@ process_souls <- function(path_mzMLs,
   # Set up parallel processing/amount of cores used
   options(MulticoreParam = BiocParallel::MulticoreParam(workers = num_workers))
 
-  seg.rt <- diff(RT_range) / size_RT_segs # seg.rt = number of RT segs
-  seg.rt.list <- as.list(seq(from = RT_range[1], to = (RT_range[2] - size_RT_segs), by = size_RT_segs))
-  names(seg.rt.list) <- seq(from = RT_range[1], to = (RT_range[2] - size_RT_segs), by = size_RT_segs)
+  bin.rt <- diff(RT_range) / size_RT_bins # bin.rt = number of RT bins
+  bin.rt.list <- as.list(seq(from = RT_range[1], to = (RT_range[2] - size_RT_bins), by = size_RT_bins))
+  names(bin.rt.list) <- seq(from = RT_range[1], to = (RT_range[2] - size_RT_bins), by = size_RT_bins)
 
-  seg.mz <- diff(mz_range) / size_mz_segs # seg.mz = number of mz segs
-  seg.mz.list <- as.list(seq(from = mz_range[1], to = (mz_range[2] - size_mz_segs), by = size_mz_segs))
-  names(seg.mz.list) <- seq(from = mz_range[1], to = (mz_range[2] - size_mz_segs), by = size_mz_segs)
-  seg.mz.list <- lapply(seg.mz.list, function(mz) {
-    mz <- c(mz, mz + size_mz_segs)
+  bin.mz <- diff(mz_range) / size_mz_bins # bin.mz = number of mz bins
+  bin.mz.list <- as.list(seq(from = mz_range[1], to = (mz_range[2] - size_mz_bins), by = size_mz_bins))
+  names(bin.mz.list) <- seq(from = mz_range[1], to = (mz_range[2] - size_mz_bins), by = size_mz_bins)
+  bin.mz.list <- lapply(bin.mz.list, function(mz) {
+    mz <- c(mz, mz + size_mz_bins)
   })
 
 
-  seg.result <- bplapply(seg.mz.list, function(mz.seg) {
+  bin.result <- bplapply(bin.mz.list, function(mz.bin) {
     TIC <- xcms::chromatogram(xdata_adj,
-                              mz = as.vector(mz.seg),
+                              mz = as.vector(mz.bin),
                               aggregationFun = "sum"
     )
 
-    lapply(seg.rt.list, function(rt.seg) {
+    lapply(bin.rt.list, function(rt.bin) {
       apply(TIC, 2, function(TIC_x) {
-        sum(TIC_x[[1]]@intensity[which(dplyr::between(TIC_x[[1]]@rtime, rt.seg, (rt.seg + size_RT_segs)) == TRUE)], na.rm = TRUE)
+        sum(TIC_x[[1]]@intensity[which(dplyr::between(TIC_x[[1]]@rtime, rt.bin, (rt.bin + size_RT_bins)) == TRUE)], na.rm = TRUE)
       })
-    }) # End lapply seg.rt.list
+    }) # End lapply bin.rt.list
   }) # End of bplapply mz
 
 
   # Creating a matrix with the results
-  result.unlist <- unlist(seg.result)
-  number.segs <- (diff(RT_range) / size_RT_segs) * ((mz_range[2] - mz_range[1]) / size_mz_segs)
-  segdata <- matrix(result.unlist, nrow = number.segs, ncol = nrow(pd), byrow = TRUE)
-  colnames(segdata) <- basename(fileNames(xdata_adj))
+  result.unlist <- unlist(bin.result)
+  number.bins <- (diff(RT_range) / size_RT_bins) * ((mz_range[2] - mz_range[1]) / size_mz_bins)
+  bindata <- matrix(result.unlist, nrow = number.bins, ncol = nrow(pd), byrow = TRUE)
+  colnames(bindata) <- basename(fileNames(xdata_adj))
 
   # Rownames
 
-  prefix <- rep(names(seg.rt.list), times = length(seg.mz.list))
-  suffix <- rep(names(seg.mz.list), each = length(seg.rt.list))
+  prefix <- rep(names(bin.rt.list), times = length(bin.mz.list))
+  suffix <- rep(names(bin.mz.list), each = length(bin.rt.list))
 
-  rownames(segdata) <- paste0(prefix, sep = ".", suffix)
+  rownames(bindata) <- paste0(prefix, sep = ".", suffix)
 
-  segdata
+  bindata
 
 }

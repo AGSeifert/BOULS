@@ -1,10 +1,10 @@
-Package: SOULS
-Title: Segmentation of untargeted LCMS spectra
+Package: BOULS
+Title: Bucketing of untargeted LCMS spectra
 Version: 0.0.0.9000
 Authors@R: 
     person("Jule", "Hansen", , "jule.hansen@uni-hamburg.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0696-2238"))
-Description: Processing approach for LCMS data using the sum of intensities of defined segments in the spectra. This approach allows separate processing of the data, which is interesting for the development of large machine learning models over time.
+Description: Processing approach for LCMS data using the sum of intensities of defined buckets in the spectra. This approach allows separate processing of the data, which is interesting for the development of large machine learning models over time.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
